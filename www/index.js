@@ -22,7 +22,7 @@ input.addEventListener('input', e => {
             last = end + 1
         }
         h.push(item.name.slice(last, item.name.length))
-        return `<li>${h.join('')}|${item.index}|${JSON.stringify(item.indexList)}</li>`
+        return `<li>${h.join('')}</li>`
     }).join('')
 
     result.innerHTML = html
