@@ -71,5 +71,6 @@ function merge(indexList) {
   return res;
 }
 const res = fuzzysearch(['ss'], 'lewiss sstracke iv')
+console.log(fuzzysearch(['thie'], 'dale thieldale thiel'))
 console.log(res);
 // console.log(merge([1, 3, 5, 7, 8, 10]));
