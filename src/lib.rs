@@ -44,79 +44,60 @@ impl FuzzySearch {
         self.map.insert(key, value_vec);
     }
 
-    pub fn fuzzy_search(&self, pattern_list: String) -> JsValue {
-        // Timer::new("wasm-search");
+    pub fn fuzzy_search(&self, pattern_list: &str) -> JsValue {
+        let _timer = Timer::new("wasm-search-call");
         let pattern_list_vec = pattern_list
             .split_whitespace()
             .map(|pattern| pattern.chars().collect())
             .collect::<Vec<Vec<char>>>();
+        let mut res = vec![];
         for value in self.map.values() {
-            Self::search(&pattern_list_vec, value);
+            let search_result = Self::search(&pattern_list_vec, value);
+            if search_result.matching {
+                res.push(search_result);
+            }
         }
-        JsValue::from_serde(&Test {
-            a: 0 as usize,
-            source: pattern_list,
-        })
-        .unwrap()
+        let _timer2 = Timer::new("wasm-serde");
+        JsValue::from_serde(&res).unwrap()
     }
     #[inline]
-    fn search(pattern_list: &Vec<Vec<char>>, source: &Vec<char>) -> bool {
+    fn search(pattern_list: &Vec<Vec<char>>, source: &Vec<char>) -> SearchResult {
         let pattern_len = pattern_list.iter().fold(0, |pre, cur| pre + cur.len());
         let source_len = source.len();
         if pattern_len > source_len {
-            return false;
+            return SearchResult {
+                matching: false,
+                indexList: vec![],
+            };
         }
-        // let pattern_list_length = pattern_list.len();
         let mut index_list: Vec<usize> = vec![];
         let mut j = 0;
         for pattern in pattern_list.iter() {
             // let ref pattern = pattern_list[i];
-            'second: for i in 0..pattern.len() {
-                let nch = pattern[i];
+            'second: for nch in pattern {
                 while j < source_len {
-                    if source[j] == nch {
+                    if source[j] == *nch {
                         index_list.push(j);
                         j += 1;
                         continue 'second;
                     }
                     j += 1;
                 }
-                return false;
+                return SearchResult {
+                    matching: false,
+                    indexList: vec![],
+                };
             }
         }
-        true
+        SearchResult {
+            matching: true,
+            indexList: index_list,
+        }
     }
 }
 #[wasm_bindgen]
 #[derive(Serialize, Deserialize)]
-pub struct Test {
-    a: usize,
-    // b: Vec<String>,
-    source: String,
+pub struct SearchResult {
+    matching: bool,
+    indexList: Vec<(usize, usize)>,
 }
-
-// export function fuzzysearch(patternList, source) {
-//   source = source.toLowerCase()
-//   let sourceLen = source.length;
-//   let patternLen = patternList.reduce((pre, cur) => { return pre + cur.length }, 0)
-//   if (patternLen > sourceLen) {
-//     return false;
-//   }
-//   const patternListLength = patternList.length;
-//   const indexList = []
-//   first: for (let i = 0, j = 0; i < patternListLength; i++) {
-//     let pattern = patternList[i];
-//     second: for (let c = 0; c < pattern.length; c++) {
-//       let nch = pattern.charCodeAt(c);
-//       while (j < sourceLen) {
-//         if (source.charCodeAt(j) === nch) {
-//           indexList.push(j++);
-//           continue second;
-//         }
-//         j++;
-//       }
-//       return { match: false };
-//     }
-//   }
-//   return { match: true, indexList: merge(indexList,), index: indexList, name: source };
-// }

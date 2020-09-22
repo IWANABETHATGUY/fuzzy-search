@@ -8,7 +8,8 @@ import faker from 'faker'
 
 const input = document.getElementById('input')
 const result = document.getElementById('result')
-
+const js = document.getElementById('js')
+const wasmDom = document.getElementById('wasm')
 const map = new Map();
 const nameList = []
 const wasmFuzzySearch = new wasm.FuzzySearch();
@@ -18,7 +19,8 @@ input.addEventListener('input', e => {
         result.innerHTML = ''
         return
     }
-    console.time('search')
+    // console.time('search')
+    let timeSearch = performance.now();
     let res = []
     map.forEach((value, key) => {
         const result = fuzzysearch(searchList, value)
@@ -27,11 +29,11 @@ input.addEventListener('input', e => {
         }
     })
     // const res = set.map(item => ({ ... })).filter(item => item.match)
-    console.timeEnd('search');
-    console.time('search-wasm');
-    wasmFuzzySearch.fuzzy_search(e.target.value.toLowerCase());
+    js.innerHTML = performance.now() - timeSearch;
+    let timeWasmSearch = performance.now();
+    console.assert(res.length === wasmFuzzySearch.fuzzy_search(e.target.value.toLowerCase()).length);
     // const res2 = nameList.map(item => ({ ...wasm.fuzzy_search(e.target.value.toLowerCase(), item) })).filter(item => item.match)
-    console.timeEnd('search-wasm');
+    wasmDom.innerHTML = performance.now() - timeWasmSearch
     const html = res.map(item => {
         let h = []
         let last = 0
