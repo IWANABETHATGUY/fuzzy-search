@@ -16,14 +16,19 @@ pub struct Timer<'a> {
 
 impl<'a> Timer<'a> {
     pub fn new(name: &'a str) -> Timer<'a> {
-        console::time_with_label(name);
+        unsafe {
+            console::time_with_label(name);
+        }
+
         Timer { name }
     }
 }
 
 impl<'a> Drop for Timer<'a> {
     fn drop(&mut self) {
-        console::time_end_with_label(self.name);
+        unsafe {
+            console::time_end_with_label(self.name);
+        }
     }
 }
 #[wasm_bindgen]
@@ -51,6 +56,7 @@ impl FuzzySearch {
             .map(|pattern| pattern.chars().collect())
             .collect::<Vec<Vec<char>>>();
         let mut res = vec![];
+        let _timer = Timer::new("wasm-search-call-searching");
         for value in self.map.values() {
             let search_result = Self::search(&pattern_list_vec, value);
             if search_result.matching {
@@ -67,7 +73,7 @@ impl FuzzySearch {
         if pattern_len > source_len {
             return SearchResult {
                 matching: false,
-                indexList: vec![],
+                index_list: vec![],
             };
         }
         let mut index_list: Vec<usize> = vec![];
@@ -76,7 +82,7 @@ impl FuzzySearch {
             // let ref pattern = pattern_list[i];
             'second: for nch in pattern {
                 while j < source_len {
-                    if source[j] == *nch {
+                    if unsafe { source.get_unchecked(j) } == nch {
                         index_list.push(j);
                         j += 1;
                         continue 'second;
@@ -85,13 +91,13 @@ impl FuzzySearch {
                 }
                 return SearchResult {
                     matching: false,
-                    indexList: vec![],
+                    index_list: vec![],
                 };
             }
         }
         SearchResult {
             matching: true,
-            indexList: index_list,
+            index_list: index_list,
         }
     }
 }
@@ -99,5 +105,5 @@ impl FuzzySearch {
 #[derive(Serialize, Deserialize)]
 pub struct SearchResult {
     matching: bool,
-    indexList: Vec<(usize, usize)>,
+    index_list: Vec<usize>,
 }

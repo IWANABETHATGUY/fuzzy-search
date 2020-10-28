@@ -29,11 +29,11 @@ input.addEventListener('input', e => {
         }
     })
     // const res = set.map(item => ({ ... })).filter(item => item.match)
-    js.innerHTML = performance.now() - timeSearch;
-    let timeWasmSearch = performance.now();
-    console.assert(res.length === wasmFuzzySearch.fuzzy_search(e.target.value.toLowerCase()).length);
-    // const res2 = nameList.map(item => ({ ...wasm.fuzzy_search(e.target.value.toLowerCase(), item) })).filter(item => item.match)
-    wasmDom.innerHTML = performance.now() - timeWasmSearch
+    js.innerHTML = `js: ${performance.now() - timeSearch}`;
+    // let timeWasmSearch = performance.now();
+    // console.assert(res.length === wasmFuzzySearch.fuzzy_search(e.target.value.toLowerCase()).length);
+    // // const res2 = nameList.map(item => ({ ...wasm.fuzzy_search(e.target.value.toLowerCase(), item) })).filter(item => item.match)
+    // wasmDom.innerHTML = `wasm: ${performance.now() - timeWasmSearch}`
     const html = res.map(item => {
         let h = []
         let last = 0
