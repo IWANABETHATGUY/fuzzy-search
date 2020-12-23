@@ -1,24 +1,33 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Hello wasm-pack!</title>
-    <style>
-      .highlight {
-        color: red;
-      }
-    </style>
-  </head>
-  <body>
-    <noscript
-      >This page contains webassembly and javascript content, please enable
-      javascript in your browser.</noscript
-    >
-    <input id="input" />
-    <p id="js"></p>
-    <p id="wasm"></p>
-    <ul id="result">
-    </ul>
-  </body>
-  <script src="./bootstrap.js"></script>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Hello wasm-pack!</title>
+  <style>
+    .highlight {
+      color: red;
+    }
+
+    #js::before {
+      content: "js: ";
+    }
+
+    #wasm::before {
+      content: "wasm: ";
+    }
+  </style>
+</head>
+
+<body>
+  <noscript>This page contains webassembly and javascript content, please enable
+    javascript in your browser.</noscript>
+  <input id="input" />
+  <p id="js"></p>
+  <p id="wasm"></p>
+  <ul id="result">
+  </ul>
+</body>
+<script src="./bootstrap.js"></script>
+
 </html>

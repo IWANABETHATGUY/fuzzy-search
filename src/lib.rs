@@ -1,12 +1,13 @@
 mod utils;
 
+use fxhash::FxHashMap;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
-#[cfg(feature = "wee_alloc")]
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+// #[cfg(feature = "wee_alloc")]
+// #[global_allocator]
+// static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 use std::collections::HashMap;
 use web_sys::console;
 
@@ -28,55 +29,61 @@ impl<'a> Drop for Timer<'a> {
 }
 #[wasm_bindgen]
 pub struct FuzzySearch {
-    map: HashMap<String, Vec<char>>,
+    map: FxHashMap<String, Vec<u8>>,
 }
 #[wasm_bindgen]
 impl FuzzySearch {
     #[wasm_bindgen(constructor)]
     pub fn new() -> FuzzySearch {
         FuzzySearch {
-            map: HashMap::new(),
+            map: FxHashMap::default(),
         }
     }
 
     pub fn insert(&mut self, key: String, value: String) {
-        let value_vec = value.to_lowercase().chars().collect();
+        let value_vec = value.to_lowercase().bytes().collect();
         self.map.insert(key, value_vec);
     }
 
     pub fn fuzzy_search(&self, pattern_list: &str) -> JsValue {
-        let _timer = Timer::new("wasm-search-call");
         let pattern_list_vec = pattern_list
             .split_whitespace()
-            .map(|pattern| pattern.chars().collect())
-            .collect::<Vec<Vec<char>>>();
-        let mut res = vec![];
+            .map(|pattern| pattern.bytes().collect())
+            .collect::<Vec<Vec<u8>>>();
+        let mut res: Vec<SearchResult> = Vec::with_capacity(self.map.len());
+        let pattern_len = pattern_list_vec.iter().fold(0, |pre, cur| pre + cur.len());
         for value in self.map.values() {
-            let search_result = Self::search(&pattern_list_vec, value);
+            let source_len = value.len();
+            if pattern_len > source_len {
+                continue;
+            }
+            let search_result = Self::search(&pattern_list_vec, value, pattern_len, source_len);
             if search_result.matching {
                 res.push(search_result);
             }
         }
-        let _timer2 = Timer::new("wasm-serde");
         JsValue::from_serde(&res).unwrap()
     }
     #[inline]
-    fn search(pattern_list: &Vec<Vec<char>>, source: &Vec<char>) -> SearchResult {
-        let pattern_len = pattern_list.iter().fold(0, |pre, cur| pre + cur.len());
-        let source_len = source.len();
+    fn search(
+        pattern_list: &Vec<Vec<u8>>,
+        source: &Vec<u8>,
+        pattern_len: usize,
+        source_len: usize,
+    ) -> SearchResult {
         if pattern_len > source_len {
             return SearchResult {
                 matching: false,
                 indexList: vec![],
             };
         }
-        let mut index_list: Vec<usize> = vec![];
+        let mut index_list: Vec<usize> = Vec::with_capacity(source_len);
         let mut j = 0;
         for pattern in pattern_list.iter() {
             // let ref pattern = pattern_list[i];
             'second: for nch in pattern {
                 while j < source_len {
-                    if source[j] == *nch {
+                    if unsafe { source.get_unchecked(j) } == nch {
                         index_list.push(j);
                         j += 1;
                         continue 'second;
@@ -99,5 +106,5 @@ impl FuzzySearch {
 #[derive(Serialize, Deserialize)]
 pub struct SearchResult {
     matching: bool,
-    indexList: Vec<(usize, usize)>,
+    indexList: Vec<usize>,
 }
