@@ -8,25 +8,24 @@ use wasm_bindgen::prelude::*;
 // #[cfg(feature = "wee_alloc")]
 // #[global_allocator]
 // static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-use std::collections::HashMap;
-use web_sys::console;
+// use web_sys::console;
 
-pub struct Timer<'a> {
-    name: &'a str,
-}
+// pub struct Timer<'a> {
+//     name: &'a str,
+// }
 
-impl<'a> Timer<'a> {
-    pub fn new(name: &'a str) -> Timer<'a> {
-        console::time_with_label(name);
-        Timer { name }
-    }
-}
+// impl<'a> Timer<'a> {
+//     pub fn new(name: &'a str) -> Timer<'a> {
+//         console::time_with_label(name);
+//         Timer { name }
+//     }
+// }
 
-impl<'a> Drop for Timer<'a> {
-    fn drop(&mut self) {
-        console::time_end_with_label(self.name);
-    }
-}
+// impl<'a> Drop for Timer<'a> {
+//     fn drop(&mut self) {
+//         console::time_end_with_label(self.name);
+//     }
+// }
 #[wasm_bindgen]
 pub struct FuzzySearch {
     map: FxHashMap<String, Vec<u8>>,
@@ -57,7 +56,7 @@ impl FuzzySearch {
             if pattern_len > source_len {
                 continue;
             }
-            let search_result = Self::search(&pattern_list_vec, value, pattern_len, source_len);
+            let search_result = Self::search(&pattern_list_vec, value, source_len);
             if search_result.matching {
                 res.push(search_result);
             }
@@ -65,18 +64,7 @@ impl FuzzySearch {
         JsValue::from_serde(&res).unwrap()
     }
     #[inline]
-    fn search(
-        pattern_list: &Vec<Vec<u8>>,
-        source: &Vec<u8>,
-        pattern_len: usize,
-        source_len: usize,
-    ) -> SearchResult {
-        if pattern_len > source_len {
-            return SearchResult {
-                matching: false,
-                indexList: vec![],
-            };
-        }
+    fn search(pattern_list: &Vec<Vec<u8>>, source: &Vec<u8>, source_len: usize) -> SearchResult {
         let mut index_list: Vec<usize> = Vec::with_capacity(source_len);
         let mut j = 0;
         for pattern in pattern_list.iter() {
