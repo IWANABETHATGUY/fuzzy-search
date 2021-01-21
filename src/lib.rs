@@ -30,6 +30,17 @@ use wasm_bindgen::prelude::*;
 pub struct FuzzySearch {
     map: FxHashMap<String, Vec<u8>>,
 }
+
+#[wasm_bindgen]
+pub struct FinalResult {
+    // len: usize,
+    res: Box<[usize]>,
+}
+#[wasm_bindgen]
+pub struct FinalResultWrapper {
+    usize_len: usize,
+    res: Vec<FinalResult>,
+}
 #[wasm_bindgen]
 impl FuzzySearch {
     #[wasm_bindgen(constructor)]
@@ -44,12 +55,12 @@ impl FuzzySearch {
         self.map.insert(key, value_vec);
     }
 
-    pub fn fuzzy_search(&self, pattern_list: &str) -> JsValue {
+    pub fn fuzzy_search(&self, pattern_list: &str) -> FinalResultWrapper {
         let pattern_list_vec = pattern_list
             .split_whitespace()
             .map(|pattern| pattern.bytes().collect())
             .collect::<Vec<Vec<u8>>>();
-        let mut res: Vec<SearchResult> = Vec::with_capacity(self.map.len());
+        let mut res: Vec<FinalResult> = vec![];
         let pattern_len = pattern_list_vec.iter().fold(0, |pre, cur| pre + cur.len());
         for value in self.map.values() {
             let source_len = value.len();
@@ -58,10 +69,16 @@ impl FuzzySearch {
             }
             let search_result = Self::search(&pattern_list_vec, value, source_len);
             if search_result.matching {
-                res.push(search_result);
+                res.push(FinalResult {
+                    // len: search_result.indexList.len(),
+                    res: search_result.indexList.into_boxed_slice(),
+                });
             }
         }
-        JsValue::from_serde(&res).unwrap()
+        FinalResultWrapper {
+            usize_len: res.len(),
+            res,
+        }
     }
     #[inline]
     fn search(pattern_list: &Vec<Vec<u8>>, source: &Vec<u8>, source_len: usize) -> SearchResult {
