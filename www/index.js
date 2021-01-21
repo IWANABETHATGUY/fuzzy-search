@@ -23,12 +23,10 @@ for (let i = 0; i < 10000; i++) {
 }
 // map.add(77777777, '简爱')
 // map.add('简单的爱')
-// map.add('海王')
 // set.add('dale thieldale thiel')
 // set.add('blanche cummeratablanche cummerata')
 // nameList.push(...set)
 // nameList.push(...map)
-
 function execSearch(val, insertPerfToDom = true) {
   const searchList = val.toLowerCase().split(/\s+/);
   if (!searchList[0]) {
@@ -47,7 +45,7 @@ function execSearch(val, insertPerfToDom = true) {
   if (insertPerfToDom) {
     js.innerHTML = jsPerf;
   } else {
-    console.log("js-perf", jsPerf);
+    // console.log("js-perf", jsPerf);
   }
 
   let timeWasmSearch = performance.now();
@@ -55,18 +53,13 @@ function execSearch(val, insertPerfToDom = true) {
   const resultPointer = wasmFuzzySearch.fuzzy_search(val.toLowerCase());
   const array = new Uint32Array(memory.buffer, resultPointer.ptr, 3);
   const res2 = new Uint32Array(memory.buffer, array[2], array[1] * 2);
-  //   const allocU32Array = new Uint32Array(2);
-  let show = false;
   for (let i = 0; i < res2.length; i += 2) {
     const pointer = res2[i];
     const count = res2[i + 1];
-    const finalResult = new Uint32Array(memory.buffer, pointer, count);
+    let a = new Uint32Array(memory.buffer, pointer, count);
     // if (!show) {
-    //     console.log(finalResult)
-    //     finalResult.
-    //     show = true
+    //   show = true;
     // }
-    // allocU32Array.
   }
   //   console.log(res2);
   //   console.log(array, res.length);
@@ -75,7 +68,7 @@ function execSearch(val, insertPerfToDom = true) {
   if (insertPerfToDom) {
     wasmDom.innerHTML = wasmPerf;
   } else {
-    console.log("wasm-perf: ", wasmPerf);
+    // console.log("wasm-perf: ", wasmPerf);
   }
   if (insertPerfToDom) {
     const html = res
@@ -100,8 +93,8 @@ function execSearch(val, insertPerfToDom = true) {
 }
 let wasmTotal = 0;
 let jsTotal = 0;
-for (let i = 0; i < 100; i++) {
-  const [js, wasm] = execSearch("abc", false);
+for (let i = 0; i < 200; i++) {
+  const [js, wasm] = execSearch("ab", false);
   wasmTotal += wasm;
   jsTotal += js;
 }
