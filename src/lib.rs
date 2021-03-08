@@ -61,7 +61,7 @@ impl FuzzySearch {
                 res.push(search_result);
             }
         }
-        JsValue::from_serde(&res).unwrap()
+        JsValue::from_bool(true)
     }
     #[inline]
     fn search(pattern_list: &Vec<Vec<u8>>, source: &Vec<u8>, source_len: usize) -> SearchResult {
