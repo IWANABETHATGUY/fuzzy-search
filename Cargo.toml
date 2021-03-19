@@ -19,6 +19,7 @@ js-sys = "0.3"
 # all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
 # code size when deploying.
 console_error_panic_hook = { version = "0.1.6", optional = true }
+fxhash = "0.2.1"
 
 # `wee_alloc` is a tiny allocator for wasm that is only ~1K in code size
 # compared to the default allocator's ~10K. It is slower than the default
@@ -34,3 +35,7 @@ features = [
 [dev-dependencies]
 
 # Tell `rustc` to optimize for small code size.
+# [package.metadata.wasm-pack.profile.release.wasm-bindgen]
+# reference-types = true
+[profile.release]
+lto = true

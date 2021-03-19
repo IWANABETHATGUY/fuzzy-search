@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vite App</title>
+  <style>
+    .highlight {
+      color: red;
+    }
+
+    #js::before {
+      content: "js: ";
+    }
+
+    #wasm::before {
+      content: "wasm: ";
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <input id="input" />
+    <p id="js"></p>
+    <p id="wasm"></p>
+    <ul id="result">
+    </ul>
+  </div>
+  <script type="module" src="/index.js"></script>
+</body>
+
+</html>

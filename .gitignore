@@ -5,3 +5,5 @@ bin/
 pkg/
 wasm-pack.log
 debug.log
+
+node_modules
