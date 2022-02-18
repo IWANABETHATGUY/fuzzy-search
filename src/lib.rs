@@ -94,5 +94,5 @@ impl FuzzySearch {
 #[derive(Serialize, Deserialize)]
 pub struct SearchResult {
     matching: bool,
-    indexList: Vec<usize>,
+    index_list: Vec<usize>,
 }
