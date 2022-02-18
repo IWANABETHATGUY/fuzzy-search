@@ -5,9 +5,9 @@ use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
-// #[cfg(feature = "wee_alloc")]
-// #[global_allocator]
-// static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+#[cfg(feature = "wee_alloc")]
+#[global_allocator]
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 // use web_sys::console;
 
 // pub struct Timer<'a> {
@@ -30,6 +30,13 @@ use wasm_bindgen::prelude::*;
 pub struct FuzzySearch {
     map: FxHashMap<String, Vec<u8>>,
 }
+fn serde_wasm_bindgen_to_value(
+    value: &impl Serialize,
+) -> Result<JsValue, serde_wasm_bindgen::Error> {
+    let serializer = serde_wasm_bindgen::Serializer::new().serialize_maps_as_objects(true);
+    value.serialize(&serializer)
+}
+
 #[wasm_bindgen]
 impl FuzzySearch {
     #[wasm_bindgen(constructor)]
@@ -43,14 +50,14 @@ impl FuzzySearch {
         let value_vec = value.to_lowercase().bytes().collect();
         self.map.insert(key, value_vec);
     }
-
+    #[wasm_bindgen]
     pub fn fuzzy_search(&self, pattern_list: &str) -> JsValue {
         let pattern_list_vec = pattern_list
             .split_whitespace()
-            .map(|pattern| pattern.bytes().collect())
-            .collect::<Vec<Vec<u8>>>();
-        let mut res: Vec<SearchResult> = Vec::with_capacity(self.map.len());
-        let pattern_len = pattern_list_vec.iter().fold(0, |pre, cur| pre + cur.len());
+            .flat_map(|pattern| pattern.bytes())
+            .collect::<Vec<u8>>();
+        let mut res: Vec<SearchResult> = Vec::new();
+        let pattern_len = pattern_list_vec.len();
         for value in self.map.values() {
             let source_len = value.len();
             if pattern_len > source_len {
@@ -61,28 +68,26 @@ impl FuzzySearch {
                 res.push(search_result);
             }
         }
-        JsValue::from_bool(true)
+        serde_wasm_bindgen_to_value(&res).unwrap()
     }
     #[inline]
-    fn search(pattern_list: &Vec<Vec<u8>>, source: &Vec<u8>, source_len: usize) -> SearchResult {
+    fn search(pattern_list: &Vec<u8>, source: &Vec<u8>, source_len: usize) -> SearchResult {
         let mut index_list: Vec<usize> = Vec::with_capacity(source_len);
         let mut j = 0;
-        for pattern in pattern_list.iter() {
-            // let ref pattern = pattern_list[i];
-            'second: for nch in pattern {
-                while j < source_len {
-                    if unsafe { source.get_unchecked(j) } == nch {
-                        index_list.push(j);
-                        j += 1;
-                        continue 'second;
-                    }
+        // let ref pattern = pattern_list[i];
+        'second: for nch in pattern_list {
+            while j < source_len {
+                if unsafe { source.get_unchecked(j) } == nch {
+                    index_list.push(j);
                     j += 1;
+                    continue 'second;
                 }
-                return SearchResult {
-                    matching: false,
-                    index_list: vec![],
-                };
+                j += 1;
             }
+            return SearchResult {
+                matching: false,
+                index_list: vec![],
+            };
         }
         SearchResult {
             matching: true,
